@@ -2,7 +2,7 @@ const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d"); //TODO: What is a 2D rendering context?
 
 // Circle Variables
-const colours = ["red", "green", "blue", "yellow", "pink", "orange", "purple"]
+const colours = ["red", "green", "blue", "pink", "orange", "purple"]
 let colourId = 0;
 const ballRadius = 10;
 let x = canvas.width / 2;
@@ -39,6 +39,9 @@ for (let c = 0; c < brickColumnCount; c++) {
 // ID to allow the interval to be cleared
 let intervalId;
 
+// Score
+let score = 0;
+
 // Paddle control variables
 let rightPressed = false;
 let leftPressed = false;
@@ -50,6 +53,10 @@ function collisionDetection(){
             if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight && b.status === 1){
                 b.status = 0;
                 dy = -dy;
+                score++;
+                if (score === (brickColumnCount * brickRowCount)){
+                    stopGame("Win");
+                }
                 if (colourId === colours.length) {
                     colourId = 0;
                 } else {
@@ -58,6 +65,12 @@ function collisionDetection(){
             }
         }
     }
+}
+
+function drawScore(){
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText(`Score: ${score}`, 8, 20);
 }
 
 function drawBricks(){
@@ -98,6 +111,16 @@ function drawBall(){
 function draw(){
     ctx.clearRect(0,0,canvas.width, canvas.height);
     drawBall();
+    paddleX = Math.max(
+        Math.min(
+            paddleX + (7 * rightPressed) - (7 * leftPressed),
+            canvas.width - paddleWidth),
+        0
+    );
+    drawPaddle();
+    drawBricks();
+    drawScore();
+    collisionDetection();
     if (x + dx > canvas.width - ballRadius|| x + dx < ballRadius) {
         dx = -dx;
     }
@@ -108,37 +131,51 @@ function draw(){
         if (x > paddleX && x < paddleX + paddleWidth) {
             dy = -dy;
         } else {
-            alert("GAME OVER");
-            reset();
-            stopButton.disabled = true;
-            startButton.disabled = false;
+            stopGame("Loss");
         }
     }
     x += dx;
     y += dy;
-    paddleX = 
-        Math.max(
-            Math.min(
-                paddleX + (7 * rightPressed) - (7 * leftPressed),
-                canvas.width - paddleWidth),
-            0
-        );
-    drawPaddle();
-    collisionDetection();
-    drawBricks();
 }
 
 function startGame(){
     intervalId = setInterval(draw, 10);
-    console.log(intervalId)
+    startButton.disabled = true;
+    stopButton.disabled = false;
 }
 
-function stopGame(){
+function stopGame(state){
     clearInterval(intervalId);
+    if (state === "Loss"){
+        startButton.disabled = true;
+        stopButton.disabled = true;
+        ctx.beginPath();
+        ctx.rect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255 255 255 /0.5)"
+        ctx.fill();
+        ctx.closePath();
+        ctx.font = "50px Arial";
+        ctx.fillStyle = "#1F1F1F";
+        ctx.fillText("GAME OVER", 100, 100);
+        ctx.font = "45px Arial";
+        ctx.fillStyle = "#DD2020";
+        ctx.fillText(`Score: ${score}`, 150, 250);
+    } else if (state === "Win") {
+        startButton.disabled = true;
+        stopButton.disabled = true;
+        ctx.beginPath();
+        ctx.rect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = "#0d700d"
+        ctx.fill();
+        ctx.closePath();
+        ctx.font = "80px Arial";
+        ctx.fillStyle = "#9a9e14";
+        ctx.fillText("YOU WON!", 40, 190);
+    }
 }
 
 function reset(){
-    stopGame();
+    clearInterval(intervalId);
     x = canvas.width / 2;
     y = canvas.height - 100;
     const xs = [-2,2];
@@ -155,6 +192,8 @@ function reset(){
         }
     }
     drawBricks();
+    score = 0;
+    drawScore();
 }
 
 const startButton = document.getElementById("startButton");
@@ -163,8 +202,6 @@ const resetButton = document.getElementById("resetButton");
 
 startButton.addEventListener("click", () => {
     startGame();
-    startButton.disabled = true;
-    stopButton.disabled = false;
 })
 
 stopButton.addEventListener("click", () => {
