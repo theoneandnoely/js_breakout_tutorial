@@ -1,18 +1,34 @@
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d"); //TODO: What is a 2D rendering context?
 
+// Circle Variables
+const colours = ["red", "green", "blue", "yellow", "pink", "orange", "purple"]
+let colourId = 0;
 const ballRadius = 10;
-
-// Set x, y variables
 let x = canvas.width / 2;
 let y = canvas.height - 100;
-// Set dx, dy as constants. Likely need to update to lets later
 let dx = 2;
 let dy = -2;
 
+// Paddle Variables
+const paddleHeight = 10;
+const paddleWidth = 75;
+let paddleX = (canvas.width - paddleWidth) / 2;
+
+// ID to allow the interval to be cleared
 let intervalId;
-let colourId = 0;
-const colours = ["red", "green", "blue", "yellow", "pink", "orange", "purple"]
+
+// Paddle control variables
+let rightPressed = false;
+let leftPressed = false;
+
+function drawPaddle(){
+    ctx.beginPath();
+    ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+    ctx.fillStyle = `${colours[colourId]}`;
+    ctx.fill();
+    ctx.closePath;
+}
 
 function drawBall(){
     ctx.beginPath();
@@ -44,6 +60,14 @@ function draw(){
     }
     x += dx;
     y += dy;
+    paddleX = 
+        Math.max(
+            Math.min(
+                paddleX + (7 * rightPressed) - (7 * leftPressed),
+                canvas.width - paddleWidth)
+            , 0
+        );
+    drawPaddle();
 }
 
 function startGame(){
@@ -63,7 +87,9 @@ function reset(){
     dy = -2;
     ctx.clearRect(0,0,canvas.width, canvas.height);
     colourId = 0;
+    paddleX = (canvas.width - paddleWidth) / 2;
     drawBall();
+    drawPaddle();
 }
 
 const startButton = document.getElementById("startButton");
@@ -89,3 +115,22 @@ resetButton.addEventListener("click", () => {
 
 reset();
 stopButton.disabled = true;
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+    if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d") {
+        rightPressed = true;
+    } else if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a") {
+        leftPressed = true;
+    }
+}
+
+function keyUpHandler(e) {
+    if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d") {
+        rightPressed = false;
+    } else if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a") {
+        leftPressed = false;
+    }
+}
