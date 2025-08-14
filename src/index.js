@@ -50,12 +50,21 @@ function draw(){
         }
     }
 
-    if (y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
+    if (y + dy < ballRadius) {
         dy = -dy;
         if (colourId === colours.length) {
             colourId = 0;
         } else {
             colourId++;
+        }
+    } else if ( y + dy > canvas.height - paddleHeight) {
+        if (x > paddleX && x < paddleX + paddleWidth) {
+            dy = -dy;
+        } else {
+            alert("GAME OVER");
+            reset();
+            stopButton.disabled = true;
+            startButton.disabled = false;
         }
     }
     x += dx;
@@ -64,8 +73,8 @@ function draw(){
         Math.max(
             Math.min(
                 paddleX + (7 * rightPressed) - (7 * leftPressed),
-                canvas.width - paddleWidth)
-            , 0
+                canvas.width - paddleWidth),
+            0
         );
     drawPaddle();
 }
