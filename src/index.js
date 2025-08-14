@@ -59,7 +59,10 @@ function reset(){
     stopGame();
     x = canvas.width / 2;
     y = canvas.height - 100;
+    dx = 2;
+    dy = -2;
     ctx.clearRect(0,0,canvas.width, canvas.height);
+    colourId = 0;
     drawBall();
 }
 
