@@ -177,6 +177,12 @@ function stopGame(state){
     if (state === "Loss"){
         startButton.disabled = true;
         stopButton.disabled = true;
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        drawPaddle();
+        drawBricks();
+        drawScore();
+        drawLives();
+        // drawScore();
         ctx.beginPath();
         ctx.rect(0,0,canvas.width, canvas.height);
         ctx.fillStyle = "rgba(255 255 255 /0.5)"
