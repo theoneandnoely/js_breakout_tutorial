@@ -2,27 +2,8 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <title>Gamedev Canvas Workshop</title>
-        <style>
-            * {
-                padding: 0;
-                margin: 10;
-            }
-            canvas {
-                background: #eeeeee;
-                display: block;
-                margin: 0 auto;
-            }
-            div {
-                display:flex;
-                justify-content: center;
-                align-items: center;
-                margin: 0 auto;
-            }
-            button {
-                margin: auto 50px;
-            }
-        </style>
+        <title>Bouncy Boi</title>
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <canvas id="myCanvas" width="480" height="320"></canvas>
@@ -32,74 +13,6 @@
             <button id="resetButton">Reset</button>
         </div>
 
-        <script>
-            const canvas = document.getElementById("myCanvas");
-            const ctx = canvas.getContext("2d"); //TODO: What is a 2D rendering context?
-
-            // Set x, y variables
-            let x = canvas.width / 2;
-            let y = canvas.height - 100;
-            // Set dx, dy as constants. Likely need to update to lets later
-            let dx = 2;
-            let dy = -2;
-
-            let intervalId;
-
-            function drawBall(){
-                ctx.beginPath();
-                ctx.arc(x,y,10,0,Math.PI * 2);
-                ctx.fillStyle = "#2A552A";
-                ctx.fill();
-                ctx.closePath();
-            }
-
-            function draw(){
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                drawBall();
-                x += dx;
-                y += dy;
-            }
-
-            function startGame(){
-                intervalId = setInterval(draw, 10);
-                console.log(intervalId)
-            }
-
-            function stopGame(){
-                clearInterval(intervalId);
-            }
-
-            function reset(){
-                stopGame();
-                x = canvas.width / 2;
-                y = canvas.height - 100;
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                drawBall();
-            }
-
-            const startButton = document.getElementById("startButton");
-            const stopButton = document.getElementById("stopButton");
-            const resetButton = document.getElementById("resetButton");
-
-            startButton.addEventListener("click", () => {
-                startGame();
-                startButton.disabled = true;
-                stopButton.disabled = false;
-            })
-
-            stopButton.addEventListener("click", () => {
-                stopGame();
-                stopButton.disabled = true;
-                startButton.disabled = false;
-            })
-
-            resetButton.addEventListener("click", () => {
-                reset();
-                startButton.disabled = false;
-            })
-
-            reset();
-            stopButton.disabled = true;
-        </script>
+        <script src="index.js"></script>
     </body>
 </html>
