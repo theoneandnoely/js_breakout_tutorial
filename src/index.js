@@ -36,11 +36,12 @@ for (let c = 0; c < brickColumnCount; c++) {
     }
 }
 
-// ID to allow the interval to be cleared
-let intervalId;
+// ID to allow the requestAnimationFrame to be canceled
+let requestId;
 
 // Score
 let score = 0;
+let lives = 3;
 
 // Paddle control variables
 let rightPressed = false;
@@ -64,6 +65,26 @@ function collisionDetection(){
                 }
             }
         }
+    }
+}
+
+function drawLives(){
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives: ", canvas.width - 150, 20);
+    let l_anchor;
+    for (let l = 0; l < lives; l++){
+        l_anchor = (canvas.width - 90) + l * 25;
+        ctx.beginPath();
+        ctx.moveTo(l_anchor, 20);
+        ctx.bezierCurveTo(l_anchor - 5, 17, l_anchor - 5, 16, l_anchor - 5, 15);
+        ctx.bezierCurveTo(l_anchor - 5, 10, l_anchor  , 10, l_anchor, 15);
+        ctx.bezierCurveTo(l_anchor, 10, l_anchor + 5  , 10, l_anchor + 5, 15);
+        ctx.bezierCurveTo(l_anchor + 5, 16, l_anchor + 5, 17, l_anchor, 20);
+        ctx.stroke();
+        ctx.fillStyle = "#ff2020";
+        ctx.fill();
+        ctx.closePath();
     }
 }
 
@@ -120,6 +141,8 @@ function draw(){
     drawPaddle();
     drawBricks();
     drawScore();
+    drawLives();
+    requestId = requestAnimationFrame(draw);
     collisionDetection();
     if (x + dx > canvas.width - ballRadius|| x + dx < ballRadius) {
         dx = -dx;
@@ -131,7 +154,12 @@ function draw(){
         if (x > paddleX && x < paddleX + paddleWidth) {
             dy = -dy;
         } else {
-            stopGame("Loss");
+            lives -= 1;
+            if (lives === 0) {
+                stopGame("Loss");
+            } else {
+                spawn();
+            }
         }
     }
     x += dx;
@@ -139,13 +167,13 @@ function draw(){
 }
 
 function startGame(){
-    intervalId = setInterval(draw, 10);
+    draw();
     startButton.disabled = true;
     stopButton.disabled = false;
 }
 
 function stopGame(state){
-    clearInterval(intervalId);
+    cancelAnimationFrame(requestId);
     if (state === "Loss"){
         startButton.disabled = true;
         stopButton.disabled = true;
@@ -156,10 +184,10 @@ function stopGame(state){
         ctx.closePath();
         ctx.font = "50px Arial";
         ctx.fillStyle = "#1F1F1F";
-        ctx.fillText("GAME OVER", 100, 100);
+        ctx.fillText("GAME OVER", 100, 150);
         ctx.font = "45px Arial";
         ctx.fillStyle = "#DD2020";
-        ctx.fillText(`Score: ${score}`, 150, 250);
+        ctx.fillText(`Score: ${score}`, 160, 200);
     } else if (state === "Win") {
         startButton.disabled = true;
         stopButton.disabled = true;
@@ -170,17 +198,25 @@ function stopGame(state){
         ctx.closePath();
         ctx.font = "80px Arial";
         ctx.fillStyle = "#9a9e14";
-        ctx.fillText("YOU WON!", 40, 190);
+        ctx.fillText("YOU WON!", 35, 190);
     }
 }
 
-function reset(){
-    clearInterval(intervalId);
+function spawn(){
     x = canvas.width / 2;
     y = canvas.height - 100;
     const xs = [-2,2];
     dx = xs[Math.round(Math.random())];
     dy = 2;
+}
+
+function reset(){
+    cancelAnimationFrame(requestId);
+    spawn();
+    
+    score = 0;
+    lives = 3;
+
     ctx.clearRect(0,0,canvas.width, canvas.height);
     colourId = 0;
     paddleX = (canvas.width - paddleWidth) / 2;
@@ -192,8 +228,8 @@ function reset(){
         }
     }
     drawBricks();
-    score = 0;
     drawScore();
+    drawLives();
 }
 
 const startButton = document.getElementById("startButton");
@@ -220,6 +256,7 @@ stopButton.disabled = true;
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
 
 function keyDownHandler(e) {
     if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d") {
@@ -234,5 +271,12 @@ function keyUpHandler(e) {
         rightPressed = false;
     } else if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a") {
         leftPressed = false;
+    }
+}
+
+function mouseMoveHandler(e) {
+    const relativeX = e.clientX - canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < canvas.width){
+        paddleX = relativeX - paddleWidth/2;
     }
 }
