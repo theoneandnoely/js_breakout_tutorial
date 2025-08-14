@@ -40,3 +40,7 @@ obj.message = "How's she cuttin?" // will work without error
 console.log(obj);
 ```
 * Should be the default variable declaration where possible.
+# Timing
+## `setInterval()`
+
+## `requestAnimationFrame()`
