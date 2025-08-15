@@ -1,4 +1,6 @@
-// import * as Ball from './ball.js';
+ import Ball from './ball.js';
+ import Paddle from './paddle.js';
+ import { Bricks } from './brick.js';
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
@@ -40,16 +42,6 @@ const b = new Bricks(
     cfg.brickPadding,
     [cfg.brickOffsetLeft, cfg.brickOffsetTop]
 );
-// for (let c = 0; c < cfg.brickColumnCount; c++) {
-//     for (let r = 0; r < cfg.brickRowCount; r++) {
-//         bricks[c][r] = new Brick(
-//             cfg.brickOffsetLeft + (c * (cfg.brickWidth + cfg.brickPadding)),
-//             cfg.brickOffsetTop + (r * (cfg.brickHeight + cfg.brickPadding)),
-//             cfg.brickWidth,
-//             cfg.brickHeight
-//         )
-//     }
-// }
 
 // Colours
 const colours = [
@@ -76,7 +68,9 @@ let rightPressed = false;
 let leftPressed = false;
 
 function collisionDetection(){
+    let coll = false;
     b.bricks.forEach(brick => {
+        console.log(brick);
         coll = brick.detectCollision(ball.x, ball.y, ball.radius);
         if (coll){
             ball.angle[1] = -1 * ball.angle[1];

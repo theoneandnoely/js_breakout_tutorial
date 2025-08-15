@@ -1,4 +1,4 @@
-class Brick {
+export class Brick {
     constructor(x, y, width, height){
         this.x = x;
         this.y = y;
@@ -17,7 +17,7 @@ class Brick {
     }
 }
 
-class Bricks {
+export class Bricks {
     constructor(rows, cols, width, height, padding, offset ){
         this.bricks = [];
         for (let c = 0; c < cols; c++){
