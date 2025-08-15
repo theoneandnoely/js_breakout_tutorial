@@ -1,43 +1,71 @@
+// import * as Ball from './ball.js';
+
 const canvas = document.getElementById("myCanvas");
-const ctx = canvas.getContext("2d"); //TODO: What is a 2D rendering context?
+const ctx = canvas.getContext("2d");
 
-// Circle Variables
-const colours = ["red", "green", "blue", "pink", "orange", "purple"]
-let colourId = 0;
-const ballRadius = 10;
-let x = canvas.width / 2;
-let y = canvas.height - 100;
-let dx = 2;
-let dy = 2;
-
-// Paddle Variables
-const paddleHeight = 10;
-const paddleWidth = 75;
-let paddleX = (canvas.width - paddleWidth) / 2;
-
-// Brick variables
-const brickRowCount = 3;
-const brickColumnCount = 5;
-const brickWidth = 75;
-const brickHeight = 20;
-const brickPadding = 10;
-const brickOffsetTop = 30;
-const brickOffsetLeft = 30;
-
-const bricks = [];
-for (let c = 0; c < brickColumnCount; c++) {
-    bricks[c] = [];
-    for (let r = 0; r < brickRowCount; r++) {
-        bricks[c][r] = { 
-            x: brickOffsetLeft + (c * (brickWidth + brickPadding)), 
-            y: brickOffsetTop + (r * (brickHeight + brickPadding)),
-            status: 1,
-        };
-    }
+const cfg = {
+    "ballRadius": 10,
+    "ballSpeed": 0.2,
+    "paddleSensitivity":7,
+    "paddleWidth": 75,
+    "paddleHeight": 10,
+    "brickRowCount": 3,
+    "brickColumnCount": 5,
+    "brickHeight": 10,
+    "brickWidth": 75,
+    "brickPadding": 10,
+    "brickOffsetLeft": 30,
+    "brickOffsetTop": 30
 }
+
+const ball = new Ball(
+    canvas.width / 2, 
+    canvas.height - 100, 
+    cfg.ballRadius, 
+    0.2, 
+    [1,1]
+);
+
+const paddle = new Paddle(
+    cfg.paddleWidth,
+    cfg.paddleHeight,
+    (canvas.width - cfg.paddleWidth) / 2
+);
+
+const b = new Bricks(
+    cfg.brickRowCount, 
+    cfg.brickColumnCount,
+    cfg.brickWidth,
+    cfg.brickHeight,
+    cfg.brickPadding,
+    [cfg.brickOffsetLeft, cfg.brickOffsetTop]
+);
+// for (let c = 0; c < cfg.brickColumnCount; c++) {
+//     for (let r = 0; r < cfg.brickRowCount; r++) {
+//         bricks[c][r] = new Brick(
+//             cfg.brickOffsetLeft + (c * (cfg.brickWidth + cfg.brickPadding)),
+//             cfg.brickOffsetTop + (r * (cfg.brickHeight + cfg.brickPadding)),
+//             cfg.brickWidth,
+//             cfg.brickHeight
+//         )
+//     }
+// }
+
+// Colours
+const colours = [
+    "red", 
+    "green", 
+    "blue", 
+    "pink", 
+    "orange", 
+    "purple"
+];
+let colourId = 0;
+
 
 // ID to allow the requestAnimationFrame to be canceled
 let requestId;
+let start;
 
 // Score
 let score = 0;
@@ -48,24 +76,21 @@ let rightPressed = false;
 let leftPressed = false;
 
 function collisionDetection(){
-    for (let c = 0; c < brickColumnCount; c++) {
-        for (let r = 0; r < brickRowCount; r++) {
-            const b = bricks[c][r];
-            if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight && b.status === 1){
-                b.status = 0;
-                dy = -dy;
-                score++;
-                if (score === (brickColumnCount * brickRowCount)){
-                    stopGame("Win");
-                }
-                if (colourId === colours.length) {
-                    colourId = 0;
-                } else {
-                    colourId++;
-                }
+    b.bricks.forEach(brick => {
+        coll = brick.detectCollision(ball.x, ball.y, ball.radius);
+        if (coll){
+            ball.angle[1] = -1 * ball.angle[1];
+            score++;
+            if (score === (b.numBricks)){
+                stopGame("Win");
+            }
+            if (colourId === colours.length) {
+                colourId = 0;
+            } else {
+                colourId++;
             }
         }
-    }
+    });
 }
 
 function drawLives(){
@@ -95,27 +120,25 @@ function drawScore(){
 }
 
 function drawBricks(){
-    for (let c = 0; c < brickColumnCount; c++){
-        for (let r = 0; r < brickRowCount; r++){
-            if (bricks[c][r].status === 1) {
+    b.bricks.forEach(brick => {
+        if (brick.status === 1) {
                 ctx.beginPath();
                 ctx.rect(
-                    bricks[c][r].x, 
-                    bricks[c][r].y, 
-                    brickWidth, 
-                    brickHeight
+                    brick.x, 
+                    brick.y, 
+                    brick.width, 
+                    brick.height
                 );
                 ctx.fillStyle = `${colours[colourId]}`;
                 ctx.fill();
                 ctx.closePath();
             }
-        }
-    }
+    });
 }
 
 function drawPaddle(){
     ctx.beginPath();
-    ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+    ctx.rect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
     ctx.fillStyle = `${colours[colourId]}`;
     ctx.fill();
     ctx.closePath;
@@ -123,19 +146,25 @@ function drawPaddle(){
 
 function drawBall(){
     ctx.beginPath();
-    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fillStyle = `${colours[colourId]}`;
     ctx.fill();
     ctx.closePath();
 }
 
-function draw(){
+function draw(timestamp){
+    if (start === undefined){
+        start = timestamp;
+    }
+    const elapsed = timestamp - start;
+    start = timestamp;
+    ball.updatePosition(elapsed);
     ctx.clearRect(0,0,canvas.width, canvas.height);
     drawBall();
-    paddleX = Math.max(
+    paddle.x = Math.max(
         Math.min(
-            paddleX + (7 * rightPressed) - (7 * leftPressed),
-            canvas.width - paddleWidth),
+            paddle.x + (cfg.paddleSensitivity * rightPressed) - (cfg.paddleSensitivity * leftPressed),
+            canvas.width - paddle.width),
         0
     );
     drawPaddle();
@@ -144,15 +173,15 @@ function draw(){
     drawLives();
     requestId = requestAnimationFrame(draw);
     collisionDetection();
-    if (x + dx > canvas.width - ballRadius|| x + dx < ballRadius) {
-        dx = -dx;
+    if (ball.x > canvas.width - ball.radius|| ball.x < ball.radius) {
+        ball.angle[0] = -1 * ball.angle[0];
     }
 
-    if (y + dy < ballRadius) {
-        dy = -dy;
-    } else if ( y + dy > canvas.height - paddleHeight) {
-        if (x > paddleX && x < paddleX + paddleWidth) {
-            dy = -dy;
+    if (ball.y < ball.radius) {
+        ball.angle[1] = ball.angle[1] * -1
+    } else if ( ball.y > canvas.height - paddle.height) {
+        if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+            ball.angle[1] = ball.angle[1] * -1;
         } else {
             lives -= 1;
             if (lives === 0) {
@@ -162,12 +191,10 @@ function draw(){
             }
         }
     }
-    x += dx;
-    y += dy;
 }
 
 function startGame(){
-    draw();
+    requestAnimationFrame(draw);
     startButton.disabled = true;
     stopButton.disabled = false;
 }
@@ -209,11 +236,9 @@ function stopGame(state){
 }
 
 function spawn(){
-    x = canvas.width / 2;
-    y = canvas.height - 100;
-    const xs = [-2,2];
-    dx = xs[Math.round(Math.random())];
-    dy = 2;
+    ball.reset()
+    const xs = [-1,1];
+    ball.angle = [xs[Math.round(Math.random())],1];
 }
 
 function reset(){
@@ -225,14 +250,12 @@ function reset(){
 
     ctx.clearRect(0,0,canvas.width, canvas.height);
     colourId = 0;
-    paddleX = (canvas.width - paddleWidth) / 2;
+    paddle.x = (canvas.width - paddle.width) / 2;
     drawBall();
     drawPaddle();
-    for (let c = 0; c < brickColumnCount; c++){
-        for (let r = 0; r < brickRowCount; r++){
-            bricks[c][r].status = 1;
-        }
-    }
+    b.bricks.forEach(brick => {
+        brick.status = 1;
+    })
     drawBricks();
     drawScore();
     drawLives();
@@ -283,6 +306,6 @@ function keyUpHandler(e) {
 function mouseMoveHandler(e) {
     const relativeX = e.clientX - canvas.offsetLeft;
     if (relativeX > 0 && relativeX < canvas.width){
-        paddleX = relativeX - paddleWidth/2;
+        paddle.x = relativeX - paddle.width/2;
     }
 }
