@@ -1,6 +1,8 @@
- import Ball from './ball.js';
- import Paddle from './paddle.js';
- import { Bricks } from './brick.js';
+ import Ball from './modules/ball.js';
+ import Paddle from './modules/paddle.js';
+ import { Bricks } from './modules/brick.js';
+ import Score from './modules/score.js';
+ import Lives from './modules/lives.js';
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
@@ -43,70 +45,18 @@ const b = new Bricks(
     [cfg.brickOffsetLeft, cfg.brickOffsetTop]
 );
 
+const score = new Score();
+const lives = new Lives(3);
+
 // ID to allow the requestAnimationFrame to be canceled
 let requestId;
 let start;
-
-// Score
-let score = 0;
-let lives = 3;
 
 // Paddle control variables
 let rightPressed = false;
 let leftPressed = false;
 let paused = false;
 let coll = 0;
-
-function drawLives(){
-    ctx.font = "16px Arial";
-    ctx.fillStyle = "#0095DD";
-    ctx.fillText("Lives: ", canvas.width - 150, 20);
-    let l_anchor;
-    for (let l = 0; l < lives; l++){
-        l_anchor = (canvas.width - 90) + l * 25;
-        ctx.beginPath();
-        ctx.moveTo(l_anchor, 20);
-        ctx.bezierCurveTo(l_anchor - 5, 17, l_anchor - 5, 16, l_anchor - 5, 15);
-        ctx.bezierCurveTo(l_anchor - 5, 10, l_anchor  , 10, l_anchor, 15);
-        ctx.bezierCurveTo(l_anchor, 10, l_anchor + 5  , 10, l_anchor + 5, 15);
-        ctx.bezierCurveTo(l_anchor + 5, 16, l_anchor + 5, 17, l_anchor, 20);
-        ctx.stroke();
-        ctx.fillStyle = "#ff2020";
-        ctx.fill();
-        ctx.closePath();
-    }
-}
-
-function drawScore(){
-    ctx.font = "16px Arial";
-    ctx.fillStyle = "#0095DD";
-    ctx.fillText(`Score: ${score}`, 8, 20);
-}
-
-function drawBricks(){
-    b.bricks.forEach(brick => {
-        if (brick.status === 1) {
-                ctx.beginPath();
-                ctx.rect(
-                    brick.x, 
-                    brick.y, 
-                    brick.width, 
-                    brick.height
-                );
-                ctx.fillStyle = "red";
-                ctx.fill();
-                ctx.closePath();
-            }
-    });
-}
-
-function drawPaddle(){
-    ctx.beginPath();
-    ctx.rect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.closePath;
-}
 
 function draw(timestamp){
     if (start === undefined){
@@ -125,13 +75,13 @@ function draw(timestamp){
             canvas.width - paddle.width),
         0
     );
-    drawPaddle();
-    drawBricks();
-    drawScore();
-    drawLives();
+    paddle.draw(ctx, canvas.height);
+    b.draw(ctx);
+    score.draw(ctx);
+    lives.draw(ctx, canvas.width);
     coll = ball.detectCollision(canvas.width, canvas.height, paddle, b);
     if (coll >= 0) {
-        score += coll;
+        score.value += coll;
         requestId = requestAnimationFrame(draw);
         if (
             !(b.remaining) 
@@ -141,9 +91,9 @@ function draw(timestamp){
             ball.speed = ball.speed * 1.25;
         }
     } else {
-        lives -= 1;
+        lives.num -= 1;
         console.log(lives);
-        if (lives === 0) {
+        if (lives.num === 0) {
             stopGame("Loss");
         } else {
             requestId = requestAnimationFrame(draw);
@@ -164,27 +114,29 @@ function stopGame(state){
         startButton.disabled = true;
         stopButton.disabled = true;
         ctx.clearRect(0,0,canvas.width, canvas.height);
-        drawPaddle();
-        drawBricks();
-        drawScore();
-        drawLives();
+        paddle.draw(ctx, canvas.height);
+        b.draw(ctx);
+        score.draw(ctx);
+        lives.draw(ctx, canvas.width);
+        // Semi-opaque Background
         ctx.beginPath();
         ctx.rect(0,0,canvas.width, canvas.height);
         ctx.fillStyle = "rgba(255 255 255 /0.5)"
         ctx.fill();
         ctx.closePath();
+        // Text
         ctx.font = "50px Arial";
         ctx.fillStyle = "#1F1F1F";
         ctx.fillText("GAME OVER", 100, 150);
         ctx.font = "45px Arial";
         ctx.fillStyle = "#DD2020";
-        ctx.fillText(`Score: ${score}`, 160, 200);
+        ctx.fillText(`Score: ${score.value}`, 160, 200);
     }
 }
 
 function spawn(){
     ball.reset();
-    const xs = [-1,1];
+    const xs = [-0.5,0.5];
     ball.angle = [xs[Math.round(Math.random())],1];
 }
 
@@ -192,18 +144,18 @@ function reset(){
     cancelAnimationFrame(requestId);
     spawn();
     
-    score = 0;
-    lives = 3;
+    score.value = 0;
+    lives.num = 3;
     ball.speed = cfg.ballSpeed;
 
     ctx.clearRect(0,0,canvas.width, canvas.height);
     paddle.x = (canvas.width - paddle.width) / 2;
     ball.draw(ctx);
-    drawPaddle();
+    paddle.draw(ctx, canvas.height);
     b.newScreen();
-    drawBricks();
-    drawScore();
-    drawLives();
+    b.draw(ctx);
+    score.draw(ctx);
+    lives.draw(ctx, canvas.width);
 }
 
 const startButton = document.getElementById("startButton");

@@ -16,6 +16,19 @@ export class Brick {
             return false;
         }
     }
+
+    draw(ctx){
+        ctx.beginPath();
+        ctx.rect(
+            this.x, 
+            this.y, 
+            this.width, 
+            this.height
+        );
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.closePath();
+    }
 }
 
 export class Bricks {
@@ -51,6 +64,14 @@ export class Bricks {
     newScreen(){
         this.bricks.forEach(b => {
             b.status = 1;
+        })
+    }
+
+    draw(ctx){
+        this.bricks.forEach(b => {
+            if (b.status === 1) {
+                b.draw(ctx);
+            }
         })
     }
 }
