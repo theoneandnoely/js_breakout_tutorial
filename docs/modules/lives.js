@@ -8,6 +8,7 @@ export default class Lives {
         ctx.fillStyle = "#0095DD";
         ctx.fillText("Lives: ", width - 150, 20);
         let l_anchor;
+        console.log(this.num);
         for (let l = 0; l < this.num; l++){
             l_anchor = (width - 90) + l * 25;
             ctx.beginPath();

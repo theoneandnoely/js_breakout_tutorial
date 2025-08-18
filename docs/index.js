@@ -19,7 +19,8 @@ const cfg = {
     "brickWidth": 75,
     "brickPadding": 10,
     "brickOffsetLeft": 30,
-    "brickOffsetTop": 30
+    "brickOffsetTop": 30,
+    "numLives": 3
 };
 
 const gameState = {
@@ -44,7 +45,9 @@ const ball = new Ball(
 const paddle = new Paddle(
     cfg.paddleWidth,
     cfg.paddleHeight,
-    (canvas.width - cfg.paddleWidth) / 2
+    (canvas.width - cfg.paddleWidth) / 2,
+    cfg.paddleSensitivity,
+    canvas.width - cfg.paddleWidth
 );
 
 const b = new Bricks(
@@ -57,9 +60,18 @@ const b = new Bricks(
 );
 
 const score = new Score();
-const lives = new Lives(3);
+const lives = new Lives(cfg.numLives);
 
-function draw(timestamp){
+function draw(){
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    ball.draw(ctx);
+    paddle.draw(ctx, canvas.height);
+    b.draw(ctx);
+    score.draw(ctx);
+    lives.draw(ctx, canvas.width);
+}
+
+function step(timestamp){
     if (gameState.start === undefined){
         gameState.start = timestamp;
     }
@@ -68,22 +80,12 @@ function draw(timestamp){
     if (ball.released) {
         ball.updatePosition(elapsed);
     }
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-    ball.draw(ctx);
-    paddle.x = Math.max(
-        Math.min(
-            paddle.x + (cfg.paddleSensitivity * gameState.rightPressed) - (cfg.paddleSensitivity * gameState.leftPressed),
-            canvas.width - paddle.width),
-        0
-    );
-    paddle.draw(ctx, canvas.height);
-    b.draw(ctx);
-    score.draw(ctx);
-    lives.draw(ctx, canvas.width);
+    paddle.updatePosition(gameState.rightPressed, gameState.leftPressed);
+    draw();
     gameState.coll = ball.detectCollision(canvas.width, canvas.height, paddle, b);
     if (gameState.coll >= 0) {
         score.value += gameState.coll;
-        gameState.requestId = requestAnimationFrame(draw);
+        gameState.requestId = requestAnimationFrame(step);
         if (
             !(b.remaining) 
             && ball.y > (cfg.brickOffsetTop + (cfg.brickRowCount * (cfg.brickHeight + cfg.brickPadding)))
@@ -97,14 +99,14 @@ function draw(timestamp){
         if (lives.num === 0) {
             stopGame("Loss");
         } else {
-            gameState.requestId = requestAnimationFrame(draw);
+            gameState.requestId = requestAnimationFrame(step);
             spawn();
         }
     }
 }
 
 function startGame(){
-    gameState.requestId = requestAnimationFrame(draw);
+    gameState.requestId = requestAnimationFrame(step);
     startButton.disabled = true;
     stopButton.disabled = false;
 }
@@ -115,11 +117,7 @@ function stopGame(state){
         startButton.disabled = true;
         stopButton.disabled = true;
         gameState.hs = score.checkIfHighScore();
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        paddle.draw(ctx, canvas.height);
-        b.draw(ctx);
-        score.draw(ctx);
-        lives.draw(ctx, canvas.width);
+        draw();
         // Semi-opaque Background
         ctx.beginPath();
         ctx.rect(0,0,canvas.width, canvas.height);
@@ -132,7 +130,7 @@ function stopGame(state){
         ctx.fillText("GAME OVER", 100, 150);
         ctx.font = "45px Arial";
         ctx.fillStyle = "#DD2020";
-        ctx.fillText(`Score: ${score.value}`, 160, 200);
+        ctx.fillText(`Score: ${score.value}`, 155, 200);
         // High Score
         ctx.font = "25px Arial";
         if (gameState.hs) {
@@ -140,7 +138,7 @@ function stopGame(state){
             ctx.fillText(`NEW HIGH SCORE!`, 145, 230);
         } else {
             ctx.fillStyle = "#555555";
-            ctx.fillText(`High Score: ${score.high_score}`, 165, 230);
+            ctx.fillText(`High Score: ${score.high_score}`, 157, 230);
         }
         
     }
@@ -152,19 +150,14 @@ function spawn(){
     ball.angle = [xs[Math.round(Math.random())],1];
     paddle.x = (canvas.width - paddle.width) / 2;
     
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-    ball.draw(ctx);
-    paddle.draw(ctx, canvas.height);
-    b.draw(ctx);
-    score.draw(ctx);
-    lives.draw(ctx, canvas.width);
+    draw();
 }
 
 function reset(){
     cancelAnimationFrame(gameState.requestId);
     
     score.value = 0;
-    lives.num = 3;
+    lives.num = cfg.numLives;
     ball.speed = cfg.ballSpeed;
     b.newScreen();
 
