@@ -43,18 +43,6 @@ const b = new Bricks(
     [cfg.brickOffsetLeft, cfg.brickOffsetTop]
 );
 
-// Colours
-const colours = [
-    "red", 
-    "green", 
-    "blue", 
-    "pink", 
-    "orange", 
-    "purple"
-];
-let colourId = 0;
-
-
 // ID to allow the requestAnimationFrame to be canceled
 let requestId;
 let start;
@@ -66,25 +54,6 @@ let lives = 3;
 // Paddle control variables
 let rightPressed = false;
 let leftPressed = false;
-
-function collisionDetection(){
-    let coll = false;
-    b.bricks.forEach(brick => {
-        coll = brick.detectCollision(ball.x, ball.y, ball.radius);
-        if (coll){
-            ball.angle[1] = -1 * ball.angle[1];
-            score++;
-            if (score === (b.numBricks)){
-                stopGame("Win");
-            }
-            if (colourId === colours.length) {
-                colourId = 0;
-            } else {
-                colourId++;
-            }
-        }
-    });
-}
 
 function drawLives(){
     ctx.font = "16px Arial";
@@ -138,7 +107,6 @@ function drawPaddle(){
 }
 
 function drawBall(){
-    // console.log(`Drawing ball @ ${ball.x}, ${ball.y}`);
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fillStyle = `${colours[colourId]}`;
@@ -165,22 +133,18 @@ function draw(timestamp){
     drawBricks();
     drawScore();
     drawLives();
-    let colls = ball.detectCollision(canvas.width, canvas.height, paddle, b);
-    console.log(colls);
-    score += colls;
-    requestId = requestAnimationFrame(draw);
-    // collisionDetection();
-    // if (ball.x > canvas.width - ball.radius|| ball.x < ball.radius) {
-    //     ball.angle[0] = -1 * ball.angle[0];
-    // }
+    score += ball.detectCollision(canvas.width, canvas.height, paddle, b);
+    if (score === (cfg.brickColumnCount * cfg.brickRowCount)){
+        stopGame("Win");
+    } else {
+        requestId = requestAnimationFrame(draw);
+    }
 
     if (ball.y < ball.radius) {
         console.log("bottom");
-        // ball.angle[1] = ball.angle[1] * -1
     } else if ( ball.y > canvas.height - paddle.height) {
         if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
             console.log("bounce");
-            // ball.angle[1] = ball.angle[1] * -1;
         } else {
             lives -= 1;
             if (lives === 0) {
@@ -208,7 +172,6 @@ function stopGame(state){
         drawBricks();
         drawScore();
         drawLives();
-        // drawScore();
         ctx.beginPath();
         ctx.rect(0,0,canvas.width, canvas.height);
         ctx.fillStyle = "rgba(255 255 255 /0.5)"
@@ -304,7 +267,7 @@ function keyUpHandler(e) {
 
 function mouseMoveHandler(e) {
     const relativeX = e.clientX - canvas.offsetLeft;
-    if (relativeX > 0 && relativeX < canvas.width){
+    if (relativeX > 0 && relativeX < canvas.width && e.clientY < canvas.height){
         paddle.x = relativeX - paddle.width/2;
     }
 }

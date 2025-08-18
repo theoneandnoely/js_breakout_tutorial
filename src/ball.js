@@ -11,7 +11,6 @@ export default class Ball {
 
     updatePosition(delta){
         let [dx, dy] = this.calcUpdate(delta);
-        console.log(this.x, this.y, dx, dy);
         this.x += dx;
         this.y += dy;
     }
@@ -133,7 +132,6 @@ export default class Ball {
         })
 
         // Net forces from all collisions to determine new angle
-        // console.log(`Wall collisions: ${wall_coll}\nRoof collisions: ${roof_coll}\nPaddle: (${paddle_x}, ${paddle_y})\n${brick_coll} bricks: (${brick_x}, ${brick_y})`);
         let x_coll = wall_coll + paddle_x + brick_x;
         let y_coll = roof_coll + paddle_y + brick_y;
         if (x_coll != 0){
@@ -143,7 +141,9 @@ export default class Ball {
             y_coll = 2 * (y_coll / Math.abs(y_coll));
         }
         this.angle[0] += x_coll;
+        this.angle[0] = Math.max(Math.min(this.angle[0], 1), -1);
         this.angle[1] += y_coll;
+        this.angle[1] = Math.max(Math.min(this.angle[1], 1), -1);
         return brick_coll;
     }
 };
