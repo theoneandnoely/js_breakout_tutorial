@@ -54,6 +54,8 @@ let lives = 3;
 // Paddle control variables
 let rightPressed = false;
 let leftPressed = false;
+let paused = false;
+let coll = 0;
 
 function drawLives(){
     ctx.font = "16px Arial";
@@ -106,23 +108,17 @@ function drawPaddle(){
     ctx.closePath;
 }
 
-function drawBall(){
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.closePath();
-}
-
 function draw(timestamp){
     if (start === undefined){
         start = timestamp;
     }
     const elapsed = timestamp - start;
     start = timestamp;
-    ball.updatePosition(elapsed);
+    if (ball.released) {
+        ball.updatePosition(elapsed);
+    }
     ctx.clearRect(0,0,canvas.width, canvas.height);
-    drawBall();
+    ball.draw(ctx);
     paddle.x = Math.max(
         Math.min(
             paddle.x + (cfg.paddleSensitivity * rightPressed) - (cfg.paddleSensitivity * leftPressed),
@@ -133,25 +129,25 @@ function draw(timestamp){
     drawBricks();
     drawScore();
     drawLives();
-    score += ball.detectCollision(canvas.width, canvas.height, paddle, b);
-    requestId = requestAnimationFrame(draw);
-    if (!(b.remaining) && ball.y > (cfg.brickOffsetTop + (cfg.brickRowCount * (cfg.brickHeight + cfg.brickPadding)))){
-        b.newScreen();
-        ball.speed = ball.speed * 1.25;
-    }
-
-    if (ball.y < ball.radius) {
-        console.log("bottom");
-    } else if ( ball.y > canvas.height - paddle.height) {
-        if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
-            console.log("bounce");
+    coll = ball.detectCollision(canvas.width, canvas.height, paddle, b);
+    if (coll >= 0) {
+        score += coll;
+        requestId = requestAnimationFrame(draw);
+        if (
+            !(b.remaining) 
+            && ball.y > (cfg.brickOffsetTop + (cfg.brickRowCount * (cfg.brickHeight + cfg.brickPadding)))
+        ){
+            b.newScreen();
+            ball.speed = ball.speed * 1.25;
+        }
+    } else {
+        lives -= 1;
+        console.log(lives);
+        if (lives === 0) {
+            stopGame("Loss");
         } else {
-            lives -= 1;
-            if (lives === 0) {
-                stopGame("Loss");
-            } else {
-                spawn();
-            }
+            requestId = requestAnimationFrame(draw);
+            spawn();
         }
     }
 }
@@ -183,17 +179,6 @@ function stopGame(state){
         ctx.font = "45px Arial";
         ctx.fillStyle = "#DD2020";
         ctx.fillText(`Score: ${score}`, 160, 200);
-    } else if (state === "Win") {
-        startButton.disabled = true;
-        stopButton.disabled = true;
-        ctx.beginPath();
-        ctx.rect(0,0,canvas.width, canvas.height);
-        ctx.fillStyle = "#0d700d"
-        ctx.fill();
-        ctx.closePath();
-        ctx.font = "80px Arial";
-        ctx.fillStyle = "#9a9e14";
-        ctx.fillText("YOU WON!", 35, 190);
     }
 }
 
@@ -209,10 +194,11 @@ function reset(){
     
     score = 0;
     lives = 3;
+    ball.speed = cfg.ballSpeed;
 
     ctx.clearRect(0,0,canvas.width, canvas.height);
     paddle.x = (canvas.width - paddle.width) / 2;
-    drawBall();
+    ball.draw(ctx);
     drawPaddle();
     b.newScreen();
     drawBricks();
@@ -259,6 +245,17 @@ function keyUpHandler(e) {
         rightPressed = false;
     } else if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a") {
         leftPressed = false;
+    } else if (e.key === "Escape") {
+        if (paused){
+            start = undefined;
+            startGame();
+            paused = false;
+        } else {
+            stopGame();
+            paused = true;
+        }
+    } else if (e.key === " "){
+        ball.release();
     }
 }
 

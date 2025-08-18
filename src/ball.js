@@ -8,6 +8,7 @@ export default class Ball {
         this.speed = speed; // speed in px/ms
         this.init_speed = speed;
         this.angle = angle; // for calculating the ratio of dx:dy
+        this.released = false;
     }
 
     updatePosition(delta){
@@ -26,7 +27,19 @@ export default class Ball {
     reset(){
         this.x = this.init_x;
         this.y = this.init_y;
-        this.speed = this.init_speed;
+        this.released = false;
+    }
+
+    release(){
+        this.released = true;
+    }
+
+    draw(ctx){
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.closePath();
     }
 
     detectCollision(c_width, c_height, paddle, bricks){
@@ -74,6 +87,10 @@ export default class Ball {
         ){
             paddle_y = (c_height - paddle.height) - (this.y + this.radius);
             console.log("Paddle Top!");
+        } else if (
+            this.y > c_height
+        ){
+            return -1;
         }
 
         // Collision with brick
