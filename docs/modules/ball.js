@@ -101,7 +101,7 @@ export default class Ball {
         let brick_coll = 0;
         bricks.bricks.forEach(b => {
             if (
-                b.status === 1 
+                b.status > 0 
                 && this.x + this.radius > b.x
                 && this.x - this.radius < b.x + b.width
             ){
@@ -109,8 +109,8 @@ export default class Ball {
                     this.y - this.radius > b.y
                     && this.y - this.radius < b.y + b.height
                 ){
-                    brick_coll++;
-                    b.status = 0;
+                    brick_coll += b.value;
+                    b.status -= 1;
                     brick_y += (b.y + b.height) - (this.y - this.radius);
                     console.log("Brick Bottom!");
                     if(
@@ -130,8 +130,8 @@ export default class Ball {
                     this.y + this.radius > b.y
                     && this.y + this.radius < b.y + b.height
                 ){
-                    brick_coll++;
-                    b.status = 0;
+                    brick_coll += b.value;
+                    b.status -= 1;
                     brick_y += b.y - (this.y + this.radius);
                     console.log("Brick Top!");
                     if(

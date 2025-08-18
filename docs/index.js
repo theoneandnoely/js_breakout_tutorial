@@ -20,7 +20,12 @@ const cfg = {
     "brickPadding": 10,
     "brickOffsetLeft": 30,
     "brickOffsetTop": 30,
-    "numLives": 3
+    "numLives": 3,
+    "brickDistribution":{
+        "Normal": 0.75,
+        "Grey": 0.15,
+        "Gold": 0.1
+    }
 };
 
 const gameState = {
@@ -56,7 +61,8 @@ const b = new Bricks(
     cfg.brickWidth,
     cfg.brickHeight,
     cfg.brickPadding,
-    [cfg.brickOffsetLeft, cfg.brickOffsetTop]
+    [cfg.brickOffsetLeft, cfg.brickOffsetTop],
+    cfg.brickDistribution
 );
 
 const score = new Score();
