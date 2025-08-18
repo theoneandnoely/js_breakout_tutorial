@@ -20,7 +20,18 @@ const cfg = {
     "brickPadding": 10,
     "brickOffsetLeft": 30,
     "brickOffsetTop": 30
-}
+};
+
+const gameState = {
+    "state": "Preplay",
+    "paused": false,
+    "rightPressed": false,
+    "leftPressed": false,
+    "requestId": undefined,
+    "start": undefined,
+    "coll": 0,
+    "hs": false
+};
 
 const ball = new Ball(
     canvas.width / 2,
@@ -48,22 +59,12 @@ const b = new Bricks(
 const score = new Score();
 const lives = new Lives(3);
 
-// ID to allow the requestAnimationFrame to be canceled
-let requestId;
-let start;
-
-// Paddle control variables
-let rightPressed = false;
-let leftPressed = false;
-let paused = false;
-let coll = 0;
-
 function draw(timestamp){
-    if (start === undefined){
-        start = timestamp;
+    if (gameState.start === undefined){
+        gameState.start = timestamp;
     }
-    const elapsed = timestamp - start;
-    start = timestamp;
+    const elapsed = timestamp - gameState.start;
+    gameState.start = timestamp;
     if (ball.released) {
         ball.updatePosition(elapsed);
     }
@@ -71,7 +72,7 @@ function draw(timestamp){
     ball.draw(ctx);
     paddle.x = Math.max(
         Math.min(
-            paddle.x + (cfg.paddleSensitivity * rightPressed) - (cfg.paddleSensitivity * leftPressed),
+            paddle.x + (cfg.paddleSensitivity * gameState.rightPressed) - (cfg.paddleSensitivity * gameState.leftPressed),
             canvas.width - paddle.width),
         0
     );
@@ -79,10 +80,10 @@ function draw(timestamp){
     b.draw(ctx);
     score.draw(ctx);
     lives.draw(ctx, canvas.width);
-    coll = ball.detectCollision(canvas.width, canvas.height, paddle, b);
-    if (coll >= 0) {
-        score.value += coll;
-        requestId = requestAnimationFrame(draw);
+    gameState.coll = ball.detectCollision(canvas.width, canvas.height, paddle, b);
+    if (gameState.coll >= 0) {
+        score.value += gameState.coll;
+        gameState.requestId = requestAnimationFrame(draw);
         if (
             !(b.remaining) 
             && ball.y > (cfg.brickOffsetTop + (cfg.brickRowCount * (cfg.brickHeight + cfg.brickPadding)))
@@ -96,26 +97,24 @@ function draw(timestamp){
         if (lives.num === 0) {
             stopGame("Loss");
         } else {
-            requestId = requestAnimationFrame(draw);
+            gameState.requestId = requestAnimationFrame(draw);
             spawn();
         }
     }
 }
 
 function startGame(){
-    requestAnimationFrame(draw);
+    gameState.requestId = requestAnimationFrame(draw);
     startButton.disabled = true;
     stopButton.disabled = false;
 }
 
-let hs;
-
 function stopGame(state){
-    cancelAnimationFrame(requestId);
+    cancelAnimationFrame(gameState.requestId);
     if (state === "Loss"){
         startButton.disabled = true;
         stopButton.disabled = true;
-        hs = score.checkIfHighScore();
+        gameState.hs = score.checkIfHighScore();
         ctx.clearRect(0,0,canvas.width, canvas.height);
         paddle.draw(ctx, canvas.height);
         b.draw(ctx);
@@ -136,12 +135,12 @@ function stopGame(state){
         ctx.fillText(`Score: ${score.value}`, 160, 200);
         // High Score
         ctx.font = "25px Arial";
-        if (hs) {
+        if (gameState.hs) {
             ctx.fillStyle = "#f3df0b";
             ctx.fillText(`NEW HIGH SCORE!`, 145, 230);
         } else {
             ctx.fillStyle = "#555555";
-            ctx.fillText(`High Score: ${score.high_score}`, 162, 230);
+            ctx.fillText(`High Score: ${score.high_score}`, 165, 230);
         }
         
     }
@@ -151,24 +150,25 @@ function spawn(){
     ball.reset();
     const xs = [-0.5,0.5];
     ball.angle = [xs[Math.round(Math.random())],1];
+    paddle.x = (canvas.width - paddle.width) / 2;
+    
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    ball.draw(ctx);
+    paddle.draw(ctx, canvas.height);
+    b.draw(ctx);
+    score.draw(ctx);
+    lives.draw(ctx, canvas.width);
 }
 
 function reset(){
-    cancelAnimationFrame(requestId);
-    spawn();
+    cancelAnimationFrame(gameState.requestId);
     
     score.value = 0;
     lives.num = 3;
     ball.speed = cfg.ballSpeed;
-
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-    paddle.x = (canvas.width - paddle.width) / 2;
-    ball.draw(ctx);
-    paddle.draw(ctx, canvas.height);
     b.newScreen();
-    b.draw(ctx);
-    score.draw(ctx);
-    lives.draw(ctx, canvas.width);
+
+    spawn();
 }
 
 const startButton = document.getElementById("startButton");
@@ -199,25 +199,25 @@ document.addEventListener("mousemove", mouseMoveHandler, false);
 
 function keyDownHandler(e) {
     if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d") {
-        rightPressed = true;
+        gameState.rightPressed = true;
     } else if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a") {
-        leftPressed = true;
+        gameState.leftPressed = true;
     }
 }
 
 function keyUpHandler(e) {
     if (e.key === "Right" || e.key === "ArrowRight" || e.key === "d") {
-        rightPressed = false;
+        gameState.rightPressed = false;
     } else if (e.key === "Left" || e.key === "ArrowLeft" || e.key === "a") {
-        leftPressed = false;
+        gameState.leftPressed = false;
     } else if (e.key === "Escape") {
-        if (paused){
-            start = undefined;
+        if (gameState.paused){
+            gameState.start = undefined;
             startGame();
-            paused = false;
+            gameState.paused = false;
         } else {
             stopGame();
-            paused = true;
+            gameState.paused = true;
         }
     } else if (e.key === " "){
         ball.release();
