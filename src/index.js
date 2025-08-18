@@ -21,11 +21,11 @@ const cfg = {
 }
 
 const ball = new Ball(
-    canvas.width / 2, 
-    canvas.height - 100, 
-    cfg.ballRadius, 
-    0.2, 
-    [1,1]
+    canvas.width / 2,
+    canvas.height - 100,
+    cfg.ballRadius,
+    0.2,
+    [0.5,0.5]
 );
 
 const paddle = new Paddle(
@@ -70,7 +70,6 @@ let leftPressed = false;
 function collisionDetection(){
     let coll = false;
     b.bricks.forEach(brick => {
-        console.log(brick);
         coll = brick.detectCollision(ball.x, ball.y, ball.radius);
         if (coll){
             ball.angle[1] = -1 * ball.angle[1];
@@ -139,6 +138,7 @@ function drawPaddle(){
 }
 
 function drawBall(){
+    // console.log(`Drawing ball @ ${ball.x}, ${ball.y}`);
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fillStyle = `${colours[colourId]}`;
@@ -165,17 +165,22 @@ function draw(timestamp){
     drawBricks();
     drawScore();
     drawLives();
+    let colls = ball.detectCollision(canvas.width, canvas.height, paddle, b);
+    console.log(colls);
+    score += colls;
     requestId = requestAnimationFrame(draw);
-    collisionDetection();
-    if (ball.x > canvas.width - ball.radius|| ball.x < ball.radius) {
-        ball.angle[0] = -1 * ball.angle[0];
-    }
+    // collisionDetection();
+    // if (ball.x > canvas.width - ball.radius|| ball.x < ball.radius) {
+    //     ball.angle[0] = -1 * ball.angle[0];
+    // }
 
     if (ball.y < ball.radius) {
-        ball.angle[1] = ball.angle[1] * -1
+        console.log("bottom");
+        // ball.angle[1] = ball.angle[1] * -1
     } else if ( ball.y > canvas.height - paddle.height) {
         if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
-            ball.angle[1] = ball.angle[1] * -1;
+            console.log("bounce");
+            // ball.angle[1] = ball.angle[1] * -1;
         } else {
             lives -= 1;
             if (lives === 0) {
@@ -230,7 +235,7 @@ function stopGame(state){
 }
 
 function spawn(){
-    ball.reset()
+    ball.reset();
     const xs = [-1,1];
     ball.angle = [xs[Math.round(Math.random())],1];
 }
