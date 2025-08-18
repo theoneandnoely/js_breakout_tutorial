@@ -13,6 +13,9 @@ export default class Score {
         if (this.value > this.high_score) {
             this.high_score = this.value;
             this.setHighScore();
+            return true;
+        } else {
+            return false;
         }
     }
 

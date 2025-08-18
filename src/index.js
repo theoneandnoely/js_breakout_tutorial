@@ -108,11 +108,14 @@ function startGame(){
     stopButton.disabled = false;
 }
 
+let hs;
+
 function stopGame(state){
     cancelAnimationFrame(requestId);
     if (state === "Loss"){
         startButton.disabled = true;
         stopButton.disabled = true;
+        hs = score.checkIfHighScore();
         ctx.clearRect(0,0,canvas.width, canvas.height);
         paddle.draw(ctx, canvas.height);
         b.draw(ctx);
@@ -131,6 +134,16 @@ function stopGame(state){
         ctx.font = "45px Arial";
         ctx.fillStyle = "#DD2020";
         ctx.fillText(`Score: ${score.value}`, 160, 200);
+        // High Score
+        ctx.font = "25px Arial";
+        if (hs) {
+            ctx.fillStyle = "#f3df0b";
+            ctx.fillText(`NEW HIGH SCORE!`, 145, 230);
+        } else {
+            ctx.fillStyle = "#555555";
+            ctx.fillText(`High Score: ${score.high_score}`, 162, 230);
+        }
+        
     }
 }
 
