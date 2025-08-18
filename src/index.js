@@ -25,7 +25,7 @@ const ball = new Ball(
     canvas.height - 100,
     cfg.ballRadius,
     0.2,
-    [0.5,0.5]
+    [1,1]
 );
 
 const paddle = new Paddle(
@@ -134,10 +134,10 @@ function draw(timestamp){
     drawScore();
     drawLives();
     score += ball.detectCollision(canvas.width, canvas.height, paddle, b);
-    if (score === (cfg.brickColumnCount * cfg.brickRowCount)){
-        stopGame("Win");
-    } else {
-        requestId = requestAnimationFrame(draw);
+    requestId = requestAnimationFrame(draw);
+    if (!(b.remaining) && ball.y > (cfg.brickOffsetTop + (cfg.brickRowCount * (cfg.brickHeight + cfg.brickPadding)))){
+        b.newScreen();
+        ball.speed = ball.speed * 1.25;
     }
 
     if (ball.y < ball.radius) {
@@ -214,9 +214,7 @@ function reset(){
     paddle.x = (canvas.width - paddle.width) / 2;
     drawBall();
     drawPaddle();
-    b.bricks.forEach(brick => {
-        brick.status = 1;
-    })
+    b.newScreen();
     drawBricks();
     drawScore();
     drawLives();

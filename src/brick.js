@@ -5,6 +5,7 @@ export class Brick {
         this.width = width;
         this.height = height;
         this.status = 1;
+        this.type = 0;
     }
 
     detectCollision(x,y,r){
@@ -35,5 +36,21 @@ export class Bricks {
 
     get numBricks(){
         return this.bricks.length;
+    }
+
+    get remaining(){
+        let is_remaining = false;
+        this.bricks.forEach(b => {
+            if (b.status === 1){
+                is_remaining = true;
+            }
+        })
+        return is_remaining
+    }
+
+    newScreen(){
+        this.bricks.forEach(b => {
+            b.status = 1;
+        })
     }
 }

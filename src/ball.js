@@ -6,6 +6,7 @@ export default class Ball {
         this.init_y = y;
         this.radius = radius;
         this.speed = speed; // speed in px/ms
+        this.init_speed = speed;
         this.angle = angle; // for calculating the ratio of dx:dy
     }
 
@@ -16,7 +17,6 @@ export default class Ball {
     }
 
     calcUpdate(delta){
-        console.log(delta, this.angle[0], this.angle[1]);
         return [
             this.speed * delta * this.angle[0], 
             this.speed * delta * this.angle[1]
@@ -26,6 +26,7 @@ export default class Ball {
     reset(){
         this.x = this.init_x;
         this.y = this.init_y;
+        this.speed = this.init_speed;
     }
 
     detectCollision(c_width, c_height, paddle, bricks){
