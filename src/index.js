@@ -91,7 +91,7 @@ function drawBricks(){
                     brick.width, 
                     brick.height
                 );
-                ctx.fillStyle = `${colours[colourId]}`;
+                ctx.fillStyle = "red";
                 ctx.fill();
                 ctx.closePath();
             }
@@ -101,7 +101,7 @@ function drawBricks(){
 function drawPaddle(){
     ctx.beginPath();
     ctx.rect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
-    ctx.fillStyle = `${colours[colourId]}`;
+    ctx.fillStyle = "red";
     ctx.fill();
     ctx.closePath;
 }
@@ -109,7 +109,7 @@ function drawPaddle(){
 function drawBall(){
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = `${colours[colourId]}`;
+    ctx.fillStyle = "red";
     ctx.fill();
     ctx.closePath();
 }
@@ -211,7 +211,6 @@ function reset(){
     lives = 3;
 
     ctx.clearRect(0,0,canvas.width, canvas.height);
-    colourId = 0;
     paddle.x = (canvas.width - paddle.width) / 2;
     drawBall();
     drawPaddle();
