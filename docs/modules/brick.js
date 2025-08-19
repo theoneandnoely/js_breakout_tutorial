@@ -5,15 +5,44 @@ export class Brick {
         this.width = width;
         this.height = height;
         this.type = type;
-        if (type === "Gold") {
-            this.value = 2;
-            this.status = 1;
-        } else if (type === "Grey") {
-            this.value = 0;
-            this.status = 2;
-        } else {
-            this.value = 1;
-            this.status = 1;
+        switch(type){
+            case "Normal":
+                this.status = 1;
+                this.value = 1;
+                break;
+            case "Gold":
+                this.status = 1;
+                this.value = 2;
+                break;
+            case "Grey":
+                this.status = 2;
+                this.value = 0;
+                this.timer = undefined;
+                break;
+        }
+    }
+
+    collide(timestamp){
+        switch(this.type){
+            case "Gold":
+                this.status = 0;
+                break;
+            case "Grey":
+                this.status = 0;
+                this.timer = timestamp;
+                break;
+            default:
+                this.status = 0;
+                break;
+        }
+        return this.value
+    }
+
+    ressurectGhosts(timestamp){
+        if (this.timer){
+            if (timestamp - this.timer > 10000){
+                this.status = 2;
+            }
         }
     }
 
@@ -113,6 +142,12 @@ export class Bricks {
                 b.status = 1;
                 b.value = 1;
             }
+        })
+    }
+
+    ressurectGhosts(timestamp){
+        this.bricks.forEach(b => {
+            b.ressurectGhosts(timestamp);
         })
     }
 

@@ -44,7 +44,7 @@ export default class Ball {
         ctx.closePath();
     }
 
-    detectCollision(c_width, c_height, paddle, bricks){
+    detectCollision(c_width, c_height, paddle, bricks, timestamp){
         // Collisiion with wall
         let wall_coll = 0;
         if (this.x + this.radius > c_width){
@@ -109,8 +109,7 @@ export default class Ball {
                     this.y - this.radius > b.y
                     && this.y - this.radius < b.y + b.height
                 ){
-                    brick_coll += b.value;
-                    b.status -= 1;
+                    brick_coll += b.collide(timestamp);
                     brick_y += (b.y + b.height) - (this.y - this.radius);
                     console.log("Brick Bottom!");
                     if(
@@ -130,8 +129,7 @@ export default class Ball {
                     this.y + this.radius > b.y
                     && this.y + this.radius < b.y + b.height
                 ){
-                    brick_coll += b.value;
-                    b.status -= 1;
+                    brick_coll += b.collide(timestamp);
                     brick_y += b.y - (this.y + this.radius);
                     console.log("Brick Top!");
                     if(

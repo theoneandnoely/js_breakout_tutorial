@@ -22,8 +22,8 @@ const cfg = {
     "brickOffsetTop": 30,
     "numLives": 3,
     "brickDistribution":{
-        "Normal": 0.75,
-        "Grey": 0.15,
+        "Normal": 0.8,
+        "Grey": 0.1,
         "Gold": 0.1
     }
 };
@@ -87,8 +87,9 @@ function step(timestamp){
         ball.updatePosition(elapsed);
     }
     paddle.updatePosition(gameState.rightPressed, gameState.leftPressed);
+    b.ressurectGhosts(timestamp);
     draw();
-    gameState.coll = ball.detectCollision(canvas.width, canvas.height, paddle, b);
+    gameState.coll = ball.detectCollision(canvas.width, canvas.height, paddle, b, timestamp);
     if (gameState.coll >= 0) {
         score.value += gameState.coll;
         gameState.requestId = requestAnimationFrame(step);
