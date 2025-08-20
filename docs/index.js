@@ -22,9 +22,10 @@ const cfg = {
     "brickOffsetTop": 30,
     "numLives": 3,
     "brickDistribution":{
-        "Normal": 0.8,
-        "Grey": 0.1,
-        "Gold": 0.1
+        "Normal": 0.85,
+        "Ghost": 0.05,
+        "Stone":0.05,
+        "Gold": 0.05
     }
 };
 

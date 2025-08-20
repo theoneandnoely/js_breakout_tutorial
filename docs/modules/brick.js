@@ -14,11 +14,14 @@ export class Brick {
                 this.status = 1;
                 this.value = 2;
                 break;
-            case "Grey":
+            case "Ghost":
                 this.status = 2;
                 this.value = 0;
                 this.timer = undefined;
                 break;
+            case "Stone":
+                this.status = 2;
+                this.value = 0;
         }
     }
 
@@ -26,22 +29,31 @@ export class Brick {
         switch(this.type){
             case "Gold":
                 this.status = 0;
-                break;
-            case "Grey":
+                return this.value;
+            case "Ghost":
                 this.status = 0;
                 this.timer = timestamp;
-                break;
+                return this.value;
+            case "Stone":
+                if (this.status === 2){
+                    this.status = 1;
+                    this.value = 1;
+                    return 0;
+                } else {
+                    this.status = 0;
+                    return this.value;
+                }
             default:
                 this.status = 0;
-                break;
+                return this.value;
         }
-        return this.value
     }
 
     ressurectGhosts(timestamp){
         if (this.timer){
             if (timestamp - this.timer > 10000){
                 this.status = 2;
+                this.timer = undefined;
             }
         }
     }
@@ -63,12 +75,24 @@ export class Brick {
             this.width, 
             this.height
         );
-        if (this.type === "Gold"){
-            ctx.fillStyle = "#eecc20";
-        } else if (this.type === "Grey") {
-            ctx.fillStyle = "#aaaaaa";
-        } else {
-            ctx.fillStyle = "#ff2020";
+        switch(this.type){
+            case "Gold":
+                ctx.fillStyle = "#eecc20";
+                break;
+            case "Ghost":
+                ctx.fillStyle = "#ffffff";
+                ctx.strokeStyle = "#dddddd";
+                ctx.stroke();
+                break;
+            case "Stone":
+                ctx.fillStyle = "#aaaaaa";
+                if (this.status === 2){
+                    ctx.strokeStyle = "#111111";
+                    ctx.stroke();
+                }
+                break;
+            default:
+                ctx.fillStyle = "#ff2020";
         }
         ctx.fill();
         ctx.closePath();
@@ -94,8 +118,10 @@ export class Bricks {
                 type_p = Math.random();
                 if (type_p < dist.Gold){
                     type = "Gold";
-                } else if (type_p < (dist.Grey + dist.Gold)){
-                    type = "Grey";
+                } else if (type_p < (dist.Ghost + dist.Gold)){
+                    type = "Ghost";
+                } else if (type_p < (dist.Stone + dist.Ghost + dist.Gold)){
+                    type = "Stone";
                 } else {
                     type = "Normal";
                 }
@@ -133,8 +159,12 @@ export class Bricks {
                 b.type = "Gold";
                 b.status = 1;
                 b.value = 2;
-            } else if (type < (this.dist.Gold + this.dist.Grey)){
-                b.type = "Grey";
+            } else if (type < (this.dist.Gold + this.dist.Ghost)){
+                b.type = "Ghost";
+                b.status = 2;
+                b.value = 0;
+            } else if (type < (this.dist.Stone + this.dist.Ghost + this.dist.Gold)){
+                b.type = "Stone";
                 b.status = 2;
                 b.value = 0;
             } else {
