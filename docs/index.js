@@ -37,7 +37,8 @@ const gameState = {
     "requestId": undefined,
     "start": undefined,
     "coll": 0,
-    "hs": false
+    "hs": false,
+    "frame":0,
 };
 
 const ball = new Ball(
@@ -103,7 +104,6 @@ function step(timestamp){
         }
     } else {
         lives.num -= 1;
-        console.log(lives);
         if (lives.num === 0) {
             stopGame("Loss");
         } else {
@@ -222,6 +222,10 @@ function keyUpHandler(e) {
         }
     } else if (e.key === " "){
         ball.release();
+    } else if (e.key === "f"){
+        gameState.frame++;
+        gameState.requestId = requestAnimationFrame(step);
+        console.log(`${gameState.frame}: ${ball.x}, ${ball.y}, ${ball.angle}`);
     }
 }
 

@@ -99,51 +99,60 @@ export default class Ball {
         let brick_x = 0;
         let brick_y = 0;
         let brick_coll = 0;
+        let tl;
+        let tr;
+        let bl;
+        let br;
         bricks.bricks.forEach(b => {
-            if (
-                b.status > 0 
-                && this.x + this.radius > b.x
-                && this.x - this.radius < b.x + b.width
-            ){
+            if (b.status > 0) {
                 if(
-                    this.y - this.radius > b.y
+                    this.x > b.x 
+                    && this.x < b.x + b.width 
+                    && this.y + this.radius > b.y 
                     && this.y - this.radius < b.y + b.height
                 ){
+                    console.log("Top/Bottom Face Collision");
                     brick_coll += b.collide(timestamp);
-                    brick_y += (b.y + b.height) - (this.y - this.radius);
-                    console.log("Brick Bottom!");
-                    if(
-                        this.x + this.radius > b.x
-                        && this.x < b.x
-                    ){
-                        brick_x += (this.x + this.radius) - b.x;
-                        console.log("Brick Left!");
-                    } else if (
-                        this.x - this.radius < b.x + b.width
-                        && this.x > b.x + b.width
-                    ){
-                        brick_x += (b.x + b.width) - (this.x - this.radius);
-                        console.log("Brick Right!");
-                    }
+                    brick_y += (this.y - this.radius < b.y) ? -1 : 1;
                 } else if (
-                    this.y + this.radius > b.y
-                    && this.y + this.radius < b.y + b.height
-                ){
+                    this.y > b.y
+                    && this.y < b.y + b.height
+                    && this.x + this.radius > b.x
+                    && this.x - this.radius < b.x + b.width
+                ) {
+                    console.log("Side Face Collision");
                     brick_coll += b.collide(timestamp);
-                    brick_y += b.y - (this.y + this.radius);
-                    console.log("Brick Top!");
-                    if(
-                        this.x + this.radius > b.x
-                        && this.x < b.x
-                    ){
-                        brick_x += (this.x + this.radius) - b.x;
-                        console.log("Brick Left!");
-                    } else if (
-                        this.x - this.radius < b.x + b.width
-                        && this.x > b.x + b.width
-                    ){
-                        brick_x += (b.x + b.width) - (this.x - this.radius);
-                        console.log("Brick Right!");
+                    brick_x += (this.x - this.radius < b.x) ? -1 : 1;
+                } else if (
+                    this.x + this.radius > b.x
+                    && this.x - this.radius < b.x + b.width
+                    && this.y + this.radius > b.y
+                    && this.y - this.radius < b.y + b.height
+                ) {
+                    tl = Math.sqrt(((this.x - b.x) * (this.x - b.x)) + (((this.y - b.y) * (this.y - b.y))));
+                    tr = Math.sqrt(((this.x - (b.x + b.width)) * (this.x - (b.x + b.width))) + ((this.y - b.y) * (this.y -b.y)));
+                    bl = Math.sqrt(((this.x - b.x) * (this.x - b.x)) + ((this.y - (b.y + b.height)) * (this.y - (b.y + b.height))));
+                    br = Math.sqrt(((this.x - (b.x + b.width)) * (this.x - (b.x + b.width))) + ((this.y - (b.y + b.height)) * (this.y - (b.y + b.height))));
+                    if (br < this.radius){
+                        console.log("Bottom Right Corner Collision");
+                        brick_coll += b.collide();
+                        brick_x += 1;
+                        brick_y += 1;
+                    } else if (bl < this.radius){
+                        console.log("Bottom Left Corner Collision");
+                        brick_coll +=  b.collide();
+                        brick_x += -1;
+                        brick_y += 1;
+                    } else if (tr < this.radius){
+                        console.log("Top Right Corner Collision");
+                        brick_coll += b.collide();
+                        brick_x += 1;
+                        brick_y += -1;
+                    } else if (tl < this.radius){
+                        console.log("Top Left Corner Collision");
+                        brick_coll += b.collide();
+                        brick_x += -1;
+                        brick_y += -1;
                     }
                 }
             }
