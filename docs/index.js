@@ -91,6 +91,15 @@ function step(timestamp){
     paddle.updatePosition(gameState.rightPressed, gameState.leftPressed);
     b.ressurectGhosts(timestamp);
     draw();
+    let icon = document.querySelector('link[rel="icon"]');
+    if (icon !== null){
+        icon.href = canvas.toDataURL("image/png");
+    } else {
+        icon = document.createElement("link");
+        icon.rel = "icon";
+        icon.href = canvas.toDataURL("image/png");
+        document.head.appendChild(icon);
+    }
     gameState.coll = ball.detectCollision(canvas.width, canvas.height, paddle, b, timestamp);
     if (gameState.coll >= 0) {
         score.value += gameState.coll;

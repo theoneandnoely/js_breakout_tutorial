@@ -48,51 +48,47 @@ export default class Ball {
         // Collisiion with wall
         let wall_coll = 0;
         if (this.x + this.radius > c_width){
-            wall_coll = c_width - (this.x + this.radius);
-            console.log("Right Wall!");
+            wall_coll += -1;
         } else if (this.x - this.radius < 0) {
-            wall_coll = (this.x - this.radius) * -1;
-            console.log("Left Wall!");
+            wall_coll += 1;
         }
 
         // Collision with roof
         let roof_coll = 0;
         if (this.y - this.radius < 0){
-            roof_coll = (this.y - this.radius) * -1;
-            console.log("Roof!");
+            roof_coll += 1;
         }
 
         // Collision with paddle
         let paddle_x = 0;
         let paddle_y = 0;
         if (
-            this.x + this.radius > paddle.x 
-            && this.x < paddle.x
+            this.x > paddle.x 
+            && this.x < paddle.x + paddle.width
             && (this.y + this.radius) > (c_height - paddle.height)
         ){
-            paddle_x += paddle.x - (this.x + this.radius);
-            console.log("Paddle Left!");
+            console.log("Paddle Face Collision");
+            paddle_y = -1;
         } else if (
-            this.x - this.radius < paddle.x + paddle.width 
-            && this.x > paddle.x + paddle.width
-            && (this.y + this.radius) > (c_height - paddle.height) 
-        ){
-            paddle_x += (paddle.x + paddle.width) - (this.x - this.radius);
-            console.log("Paddle Right!");
-
-        }
-
-        if (
-            this.x + this.radius > paddle.x 
-            && this.x - this.radius < paddle.x + paddle.width 
+            this.x + this.radius > paddle.x
+            && this.x - this.radius < paddle.x + paddle.width
             && this.y + this.radius > c_height - paddle.height
         ){
-            paddle_y = (c_height - paddle.height) - (this.y + this.radius);
-            console.log("Paddle Top!");
+            if (Math.sqrt(((this.x - paddle.x) * (this.x - paddle.x)) + ((this.y - (c_height - paddle.height)) * (this.y - (c_height - paddle.height)))) < this.radius){
+                paddle_x += (this.x - paddle.x)/this.radius;
+                paddle_y += (this.y - (c_height - paddle.height))/this.radius;
+                console.log(`Paddle TL Corner Collision (${paddle_x}, ${paddle_y})`);
+            } else if (
+                Math.sqrt(((this.x - (paddle.x + paddle.width)) * (this.x - (paddle.x + paddle.width))) + ((this.y - (c_height - paddle.height)) * (this.y - (c_height - paddle.height)))) < this.radius 
+            ){
+                paddle_x += (this.x - (paddle.x + paddle.width))/this.radius;
+                paddle_y += (this.y - (c_height - paddle.height))/this.radius;
+                console.log(`Paddle TR Corner Collision (${paddle_x}, ${paddle_y})`);
+            }
         } else if (
-            this.y > c_height
+            this.y + this.radius > c_height
         ){
-            return -1;
+            return -1
         }
 
         // Collision with brick
@@ -134,25 +130,25 @@ export default class Ball {
                     bl = Math.sqrt(((this.x - b.x) * (this.x - b.x)) + ((this.y - (b.y + b.height)) * (this.y - (b.y + b.height))));
                     br = Math.sqrt(((this.x - (b.x + b.width)) * (this.x - (b.x + b.width))) + ((this.y - (b.y + b.height)) * (this.y - (b.y + b.height))));
                     if (br < this.radius){
-                        console.log("Bottom Right Corner Collision");
                         brick_coll += b.collide();
-                        brick_x += 1;
-                        brick_y += 1;
+                        brick_x += (this.x - (b.x + b.width))/this.radius;
+                        brick_y += (this.y - (b.y + b.height))/this.radius;
+                        console.log(`Bottom Right Corner Collision (${brick_x}, ${brick_y})`);
                     } else if (bl < this.radius){
-                        console.log("Bottom Left Corner Collision");
                         brick_coll +=  b.collide();
-                        brick_x += -1;
-                        brick_y += 1;
+                        brick_x += (this.x - b.x)/this.radius;
+                        brick_y += (this.y - (b.y + b.height))/this.radius;
+                        console.log(`Bottom Left Corner Collision (${brick_x}, ${brick_y})`);
                     } else if (tr < this.radius){
-                        console.log("Top Right Corner Collision");
                         brick_coll += b.collide();
-                        brick_x += 1;
-                        brick_y += -1;
+                        brick_x += (this.x - (b.x + b.width))/this.radius;
+                        brick_y += (this.y - b.y)/this.radius;
+                        console.log(`Top Right Corner Collision (${brick_x}, ${brick_y})`);
                     } else if (tl < this.radius){
-                        console.log("Top Left Corner Collision");
                         brick_coll += b.collide();
-                        brick_x += -1;
-                        brick_y += -1;
+                        brick_x += (this.x - b.x)/this.radius;
+                        brick_y += (this.y - b.y)/this.radius;
+                        console.log(`Top Left Corner Collision (${brick_x}, ${brick_y})`);
                     }
                 }
             }
@@ -161,11 +157,15 @@ export default class Ball {
         // Net forces from all collisions to determine new angle
         let x_coll = wall_coll + paddle_x + brick_x;
         let y_coll = roof_coll + paddle_y + brick_y;
-        if (x_coll != 0){
-            x_coll = 2 * (x_coll / Math.abs(x_coll));
+        if (x_coll > 0){
+            x_coll = Math.min(2 * x_coll, 2);
+        } else if (x_coll < 0) {
+            x_coll = Math.max(2 * x_coll, -2);
         }
-        if (y_coll != 0){
-            y_coll = 2 * (y_coll / Math.abs(y_coll));
+        if (y_coll > 0){
+            y_coll = Math.min(2 * y_coll, 2);
+        } else if (y_coll < 0){
+            y_coll = Math.max(2 * y_coll, -2);
         }
         this.angle[0] += x_coll;
         this.angle[0] = Math.max(Math.min(this.angle[0], 1), -1);
