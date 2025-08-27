@@ -16,6 +16,7 @@ export default class Lives {
             ctx.bezierCurveTo(l_anchor - 5, 10, l_anchor  , 10, l_anchor, 15);
             ctx.bezierCurveTo(l_anchor, 10, l_anchor + 5  , 10, l_anchor + 5, 15);
             ctx.bezierCurveTo(l_anchor + 5, 16, l_anchor + 5, 17, l_anchor, 20);
+            ctx.strokeStyle = "#000000";
             ctx.stroke();
             ctx.fillStyle = "#ff2020";
             ctx.fill();
